@@ -1,13 +1,14 @@
 from torchvision import models, transforms
 from PIL import Image
 import torch
+import io
 
 class ResnetClassifier:
 
-    def __init__(self, path):
-        self.path = path
+    # def __init__(self, path):
+    #     self.path = path
 
-    def classify(self):
+    def classify(self, img_bytes):
         resnet = models.resnet18(pretrained=True)
         transform = transforms.Compose([
                       transforms.Resize(256),
@@ -17,7 +18,8 @@ class ResnetClassifier:
                       mean=[0.485, 0.456, 0.406],
                       std=[0.229, 0.224, 0.225],
                       )])
-        img = Image.open(self.path)
+        #img = Image.open(self.path)
+        img = Image.open(io.BytesIO(img_bytes))
         img_t = transform(img)
         batch_t = torch.unsqueeze(img_t, 0)
         resnet.eval()

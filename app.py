@@ -14,9 +14,10 @@ def classify_image():
     if 'media' not in request.files:
         print("No file in request")
     file = request.files['media']
-    file.save(os.path.join('', 'upload.jpeg'))
-    classifier = ResnetClassifier("upload.jpeg")
-    res = classifier.classify()
+    #file.save(os.path.join('', 'upload.jpeg'))
+    img_bytes = file.read()
+    classifier = ResnetClassifier()
+    res = classifier.classify(img_bytes=img_bytes)
     return { res[0][0] : res[0][1] }, 200
 
 if __name__ == "__main__":
