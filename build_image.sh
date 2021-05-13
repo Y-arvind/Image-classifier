@@ -3,4 +3,5 @@
 set -e
 
 # start the docker container
-docker build -f Dockerfile
+
+#docker build -t classifier . 
