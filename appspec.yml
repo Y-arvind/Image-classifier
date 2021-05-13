@@ -5,14 +5,14 @@ files:
     destination: /classifer/
 hooks:
   ApplicationStop:
-    - location: kill_container.sh
+    - location: scripts/kill_container.sh
       timeout: 300
       runas: root
   AfterInstall:
-    - location: build_image.sh
+    - location: scripts/build_image.sh
       timeout: 300
       runas: ec2-user
   ApplicationStart:
-    - location: start_container.sh
+    - location: scripts/start_container.sh
       timeout: 300
       runas: ec2-user
