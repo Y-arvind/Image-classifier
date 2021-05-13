@@ -8,6 +8,8 @@ class TestCase(unittest.TestCase):
             f = image.read()
             c = ResnetClassifier()
             l = c.classify(f)
+            assert l is not None
+            assert len(l)>0 and len(l[0])>1
             assert l[0][0] == 'Labrador retriever'
         image.close()
 
