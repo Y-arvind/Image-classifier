@@ -18,7 +18,7 @@ The classifier is currently deployed in an Amazon Lightsail container, which is 
 
 Script `client.py` can be used to test these endpoints along with test images from the `images` folder. 
 
-### Sample classification
+## Sample classification
 <ins> Image sent </ins> 
 
 <img src="https://github.com/rva15/ResnetClassifier/blob/master/images/dog.jpeg" width="500">
