@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Hello, World!"
+    return "Welcome to Resnet Classifier!"
 
 @app.route('/qure/v1.0/classify/', methods=['GET','POST'])
 def classify_image():
