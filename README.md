@@ -1,5 +1,5 @@
 ## Resnet Classifier
-A residual network, or ResNet for short, is an artificial neural network that helps to build a deeper neural network by utilizing skip connections or shortcuts to jump over some layers. 
+A residual network, or ResNet for short, is an artificiagit l neural network that helps to build a deeper neural network by utilizing skip connections or shortcuts to jump over some layers. 
 It is a type of CNN network. Here we use a pretrained Resnet18 model to classify images into one of 1000 labels. 
 
 ## How to run
@@ -12,16 +12,12 @@ Build a docker image
 Run the image
 `sudo docker run -d -p 5000:5000 classifier`
 The API is again available on localhost:5000
-### Public
-The classifier is currently deployed in an Amazon Lightsail container, which is accessible at this public endpoint
-`https://flask-service.bov0er98st5ta.us-east-1.cs.amazonlightsail.com/`
 
-Script `client.py` can be used to test these endpoints along with test images from the `images` folder. 
 
 ## Sample classification
 <ins> Image sent </ins> 
 
-<img src="https://github.com/rva15/ResnetClassifier/blob/master/images/dog.jpeg" width="500">
+<img src="https://github.com/Y-arvind/ResnetClassifier/blob/master/images/dog.jpeg" width="500">
 
 <ins> Response </ins>
 

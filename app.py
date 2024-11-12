@@ -1,12 +1,12 @@
 #!flask/bin/python
-from flask import Flask, request
+from flask import Flask, request, render_template, jsonify
 from resnet_classifier import ResnetClassifier
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Welcome to Resnet Classifier!"
+    return render_template("index.html")
 
 @app.route('/qure/v1.0/classify/', methods=['GET','POST'])
 def classify_image():
@@ -17,7 +17,9 @@ def classify_image():
     classifier = ResnetClassifier()
     try:
         res = classifier.classify(img_bytes=img_bytes)
-        return { res[0][0] : res[0][1] }, 200
+        if res[0][1]<50:
+            return jsonify("Sorry for the inconvenience!,The confidence index is low to classify accurately.")
+        return jsonify({ res[0][0] : res[0][1] }), 200
     except Exception as e:
         # TODO log the exception here
         print(e)

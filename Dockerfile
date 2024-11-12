@@ -1,4 +1,4 @@
-FROM anibali/pytorch:1.5.0-cuda10.2
+FROM anibali/pytorch:1.13.1-cuda11.7-ubuntu22.04
 
 WORKDIR /classifier
 
@@ -9,4 +9,5 @@ RUN pip install -r requirements.txt
 
 COPY . /classifier
 RUN sudo chmod -R a+rwx /classifier/
+EXPOSE 5000
 CMD [ "python", "app.py" ]
