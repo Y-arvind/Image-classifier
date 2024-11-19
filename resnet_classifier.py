@@ -1,4 +1,5 @@
 from torchvision import models, transforms
+from torchvision.models import ResNet18_Weights
 from PIL import Image
 import torch
 import io
@@ -6,7 +7,7 @@ import io
 class ResnetClassifier:
 
     def classify(self, img_bytes):
-        resnet = models.resnet18(pretrained=True)
+        resnet = models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
         img_t = self.__transform_image(img_bytes)
         batch_t = torch.unsqueeze(img_t, 0)
         resnet.eval()
