@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Classifier</title>
+
+    <!-- Add the CSS for image preview -->
+    <style>
+        #imagePreview {
+            max-width: 100%; /* Ensures the image doesn't overflow its container */
+            max-height: 200px; /* Limit the height to 400px */
+            display: block; /* Ensures the image is a block element for better styling */
+            margin-top: 20px; /* Adds space between the image and other content */
+        }
+    </style>
 </head>
 <body>
     <h1>Resnet Image Classifier</h1>
@@ -15,12 +25,33 @@
         <button type="submit">Classify Image</button>
     </form>
 
+    <!-- Image preview section -->
+    <div id="previewContainer">
+        <h3>Image Preview:</h3>
+        <img id="imagePreview" style="display: none;" />
+    </div>
+
     <!-- Result section -->
     <h2>Classification Result:</h2>
     <pre id="result"></pre>
 
-    <!-- JavaScript to handle form submission and display results -->
+    <!-- JavaScript to handle form submission, display results, and image preview -->
     <script>
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const imageInput = event.target;
+            const file = imageInput.files[0];
+
+            if (file) {
+                // Create a URL for the selected file
+                const objectURL = URL.createObjectURL(file);
+
+                // Display the image preview
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = objectURL;
+                imagePreview.style.display = 'block'; // Make the image visible
+            }
+        });
+
         document.getElementById('uploadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
 
