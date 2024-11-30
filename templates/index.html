@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Classifier</title>
-
-    <!-- Add the CSS for image preview -->
     <style>
         #imagePreview {
-            max-width: 100%; /* Ensures the image doesn't overflow its container */
-            max-height: 200px; /* Limit the height to 400px */
-            display: block; /* Ensures the image is a block element for better styling */
-            margin-top: 20px; /* Adds space between the image and other content */
+            max-width: 100%;
+            max-height: 200px;
+            display: block;
+            margin-top: 20px;
+        }
+        #feedbackSection {
+            display: none;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Resnet Image Classifier</h1>
+    <h1>ResNet Image Classifier</h1>
     <p>Upload an image to classify it:</p>
 
     <!-- Image upload form -->
@@ -25,8 +27,8 @@
         <button type="submit">Classify Image</button>
     </form>
 
-    <!-- Image preview section -->
-    <div id="previewContainer">
+    <!-- Image preview -->
+    <div>
         <h3>Image Preview:</h3>
         <img id="imagePreview" style="display: none;" />
     </div>
@@ -35,20 +37,25 @@
     <h2>Classification Result:</h2>
     <pre id="result"></pre>
 
-    <!-- JavaScript to handle form submission, display results, and image preview -->
+    <!-- Feedback section -->
+    <div id="feedbackSection">
+        <h3>Provide Feedback:</h3>
+        <form id="feedbackForm">
+            <label for="tags">Tags (comma-separated):</label><br>
+            <input type="text" id="tags" required /><br><br>
+            <button type="submit">Submit Feedback</button>
+        </form>
+    </div>
+
     <script>
+        let imageId = null; // Store the image ID for feedback
+
         document.getElementById('imageInput').addEventListener('change', function(event) {
-            const imageInput = event.target;
-            const file = imageInput.files[0];
-
+            const file = event.target.files[0];
             if (file) {
-                // Create a URL for the selected file
                 const objectURL = URL.createObjectURL(file);
-
-                // Display the image preview
-                const imagePreview = document.getElementById('imagePreview');
-                imagePreview.src = objectURL;
-                imagePreview.style.display = 'block'; // Make the image visible
+                document.getElementById('imagePreview').src = objectURL;
+                document.getElementById('imagePreview').style.display = 'block';
             }
         });
 
@@ -65,22 +72,59 @@
             formData.append('file', imageInput.files[0]);
 
             try {
-                // Send the image to the Flask server
                 const response = await fetch('/qure/v1.0/classify/', {
                     method: 'POST',
                     body: formData,
                 });
 
-                // Parse and display the response
+                const result = await response.json();
                 if (response.ok) {
-                    const result = await response.json();
                     document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+                    document.getElementById('feedbackSection').style.display = 'none';
                 } else {
-                    const errorText = await response.text();
-                    document.getElementById('result').textContent = `Error: ${errorText}`;
+                    // Request feedback
+                    document.getElementById('feedbackSection').style.display = 'block';
+                    document.getElementById('result').textContent = result.message;
+
+                    // Upload the image for feedback
+                    const uploadResponse = await fetch('/feedback/image', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const uploadResult = await uploadResponse.json();
+                    if (uploadResponse.ok) {
+                        imageId = uploadResult.image_id; // Store image ID for tags submission
+                    } else {
+                        alert(uploadResult.error);
+                    }
                 }
             } catch (error) {
                 document.getElementById('result').textContent = `Error: ${error.message}`;
+            }
+        });
+
+        document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const tags = document.getElementById('tags').value;
+            const formData = new FormData();
+            formData.append('image_id', imageId);
+            formData.append('tags', tags);
+
+            try {
+                const response = await fetch('/feedback/tags', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+                alert(result.message || "Tags saved successfully!");
+                if (response.ok) {
+                    document.getElementById('feedbackSection').style.display = 'none';
+                    document.getElementById('tags').value = '';
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
             }
         });
     </script>
