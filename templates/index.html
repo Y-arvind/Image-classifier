@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Classifier</title>
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css" />
     <style>
         #imagePreview {
             max-width: 100%;
@@ -11,6 +12,9 @@
             display: block;
             margin-top: 20px;
         }
+        #cropContainer {
+            display: none;
+            margin-top: 20px;
         #feedbackSection {
             display: none;
             margin-top: 20px;
@@ -27,10 +31,12 @@
         <button type="submit">Classify Image</button>
     </form>
 
-    <!-- Image preview -->
-    <div>
-        <h3>Image Preview:</h3>
-        <img id="imagePreview" style="display: none;" />
+
+    <!-- Image preview with cropping -->
+    <div id="cropContainer" style="display: none;">
+    <h3>Crop Image:</h3>
+    <img id="imagePreview" />
+    <button id="cropButton">Set Crop Coordinates</button>
     </div>
 
     <!-- Result section -->
@@ -40,24 +46,36 @@
     <!-- Feedback section -->
     <div id="feedbackSection">
         <h3>Provide Feedback:</h3>
+
         <form id="feedbackForm">
             <label for="tags">Tags (comma-separated):</label><br>
             <input type="text" id="tags" required /><br><br>
             <button type="submit">Submit Feedback</button>
         </form>
     </div>
-
+    <script src="https://unpkg.com/cropperjs"></script>
     <script>
+        let cropper = null;
         let imageId = null; // Store the image ID for feedback
-
-        document.getElementById('imageInput').addEventListener('change', function(event) {
+        let cropCoordinates = null;
+        document.getElementById('imageInput').addEventListener('change', function (event) {
             const file = event.target.files[0];
             if (file) {
                 const objectURL = URL.createObjectURL(file);
-                document.getElementById('imagePreview').src = objectURL;
-                document.getElementById('imagePreview').style.display = 'block';
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = objectURL;
+                imagePreview.style.display = 'block';
+                document.getElementById('cropContainer').style.display = 'block';
+
+                // Initialize Cropper.js
+                if (cropper) cropper.destroy(); // Destroy previous cropper instance
+                cropper = new Cropper(imagePreview, {
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
             }
         });
+
 
         document.getElementById('uploadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -102,14 +120,34 @@
                 document.getElementById('result').textContent = `Error: ${error.message}`;
             }
         });
+        document.getElementById('cropButton').addEventListener('click', () => {
+            if (cropper) {
+                const data = cropper.getData();
+                cropCoordinates = {
+                    x1: data.x,
+                    y1: data.y,
+                    x2: data.x + data.width,
+                    y2: data.y + data.height,
+                };
+                alert(`Crop Coordinates: ${JSON.stringify(cropCoordinates)}`);
+            }
+        });
+
 
         document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const tags = document.getElementById('tags').value;
+
+            if (!cropCoordinates) {
+                alert("Please crop an area before submitting feedback.");
+                return;
+            }
+
             const formData = new FormData();
             formData.append('image_id', imageId);
             formData.append('tags', tags);
+            formData.append('cropCoordinates', JSON.stringify(cropCoordinates));
 
             try {
                 const response = await fetch('/feedback/tags', {

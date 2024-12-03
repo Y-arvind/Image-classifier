@@ -3,6 +3,7 @@ from resnet_classifier import ResnetClassifier
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 import os
+import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://Y-arvind:Arvind#2002@localhost/feedback_db'
@@ -32,6 +33,14 @@ class Image(db.Model):
         back_populates='images'
     )
 
+    # One-to-one relationship with CropCoordinates
+    cropcoordinates = db.relationship(
+        'CropCoordinates',
+        back_populates='images',
+        uselist=False
+    )
+
+
 
 # Tag Table
 class Tag(db.Model):
@@ -45,7 +54,19 @@ class Tag(db.Model):
         secondary='image_tag',
         back_populates='tags'
     )
-
+# CropCoordinate Table
+class CropCoordinates(db.Model):
+    __tablename__ = 'cropcoordinates'
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('images.id'), nullable=False)
+    images = db.relationship(
+        'Image',
+        back_populates='cropcoordinates'
+    )
+    x1 = db.Column(db.Float, nullable=False)
+    y1 = db.Column(db.Float, nullable=False)
+    x2 = db.Column(db.Float, nullable=False)
+    y2 = db.Column(db.Float, nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -113,25 +134,53 @@ def submit_feedback_tags():
         # Retrieve data from request
         image_id = request.form.get('image_id')
         tags = request.form.get('tags')
+        crops = request.form.get('cropCoordinates')
 
         # Validate image existence
         image = db.session.get(Image, image_id)
         if not image:
             return jsonify({"error": "Invalid image ID."}), 400
 
+        if not CropCoordinates or not tags:
+            return jsonify({"error": "Missing crop coordinates or tags."}), 400
+
+            # Process CropCoordinates
+        try:
+            crops = json.loads(crops)
+        except json.JSONDecodeError:
+            return jsonify({"error": "Invalid crop coordinates format."}), 400
+        x1 = crops.get('x1')
+        y1 = crops.get('y1')
+        x2 = crops.get('x2')
+        y2 = crops.get('y2')
+
+        # Save the crop coordinates to the database
+        crop_coordinates = CropCoordinates(
+            x1=x1,
+            y1=y1,
+            x2=x2,
+            y2=y2,
+            image_id=image.id
+        )
+        db.session.add(crop_coordinates)
+        db.session.commit()
+
         # Process tags
         tags_list = [tag.strip() for tag in tags.split(',')]
         for tag_name in tags_list:
             tag = Tag.query.filter_by(name=tag_name).first()
             if not tag:
+                # Create a new Tag object if it doesn't exist
                 tag = Tag(name=tag_name)
                 db.session.add(tag)
-                db.session.commit()
+                db.session.flush()  # Flush to assign an ID to the new Tag object without committing the entire transaction
 
+            # Create a new ImageTag association
             image_tag = ImageTag(image_id=image.id, tag_id=tag.id)
             db.session.add(image_tag)
 
-        db.session.commit()
+        db.session.commit()  # Commit after processing all tags
+
         return jsonify({"message": "Tags saved successfully!"}), 200
 
     except Exception as e:
