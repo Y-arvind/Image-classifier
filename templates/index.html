@@ -36,7 +36,7 @@
     <div id="cropContainer" style="display: none;">
     <h3>Crop Image:</h3>
     <img id="imagePreview" />
-    <button id="cropButton">Set Crop Coordinates</button>
+    <button id="cropButton">Crop</button>
     </div>
 
     <!-- Result section -->
@@ -129,7 +129,7 @@
                     x2: data.x + data.width,
                     y2: data.y + data.height,
                 };
-                alert(`Crop Coordinates: ${JSON.stringify(cropCoordinates)}`);
+                alert(`Image cropped successfully!`);
             }
         });
 

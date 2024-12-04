@@ -20,6 +20,7 @@ class ImageTag(db.Model):
     tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), primary_key=True)
 
 
+
 # Image Table
 class Image(db.Model):
     __tablename__ = 'images'
@@ -33,12 +34,7 @@ class Image(db.Model):
         back_populates='images'
     )
 
-    # One-to-one relationship with CropCoordinates
-    cropcoordinates = db.relationship(
-        'CropCoordinates',
-        back_populates='images',
-        uselist=False
-    )
+
 
 
 
@@ -47,26 +43,14 @@ class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False, unique=True)
-
+    cropcoordinates = db.Column(db.String, nullable=False)
     # Relationship with images through ImageTag
     images = db.relationship(
         'Image',
         secondary='image_tag',
         back_populates='tags'
     )
-# CropCoordinate Table
-class CropCoordinates(db.Model):
-    __tablename__ = 'cropcoordinates'
-    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
-    image_id = db.Column(db.Integer, db.ForeignKey('images.id'), nullable=False)
-    images = db.relationship(
-        'Image',
-        back_populates='cropcoordinates'
-    )
-    x1 = db.Column(db.Float, nullable=False)
-    y1 = db.Column(db.Float, nullable=False)
-    x2 = db.Column(db.Float, nullable=False)
-    y2 = db.Column(db.Float, nullable=False)
+
 
 with app.app_context():
     db.create_all()
@@ -141,7 +125,7 @@ def submit_feedback_tags():
         if not image:
             return jsonify({"error": "Invalid image ID."}), 400
 
-        if not CropCoordinates or not tags:
+        if not crops or not tags:
             return jsonify({"error": "Missing crop coordinates or tags."}), 400
 
             # Process CropCoordinates
@@ -149,29 +133,13 @@ def submit_feedback_tags():
             crops = json.loads(crops)
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid crop coordinates format."}), 400
-        x1 = crops.get('x1')
-        y1 = crops.get('y1')
-        x2 = crops.get('x2')
-        y2 = crops.get('y2')
-
-        # Save the crop coordinates to the database
-        crop_coordinates = CropCoordinates(
-            x1=x1,
-            y1=y1,
-            x2=x2,
-            y2=y2,
-            image_id=image.id
-        )
-        db.session.add(crop_coordinates)
-        db.session.commit()
-
         # Process tags
         tags_list = [tag.strip() for tag in tags.split(',')]
         for tag_name in tags_list:
             tag = Tag.query.filter_by(name=tag_name).first()
             if not tag:
                 # Create a new Tag object if it doesn't exist
-                tag = Tag(name=tag_name)
+                tag = Tag(name=tag_name, cropcoordinates=json.dumps(crops))
                 db.session.add(tag)
                 db.session.flush()  # Flush to assign an ID to the new Tag object without committing the entire transaction
 
