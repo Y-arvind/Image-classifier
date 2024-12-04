@@ -156,7 +156,18 @@ def submit_feedback_tags():
         print("Error saving feedback tags:", e)
         return jsonify({"error": "An error occurred while saving tags."}), 500
 
+@app.route('/tags/suggestions', methods=['GET'])
+def get_tag_suggestions():
+    query = request.args.get('query', '').strip().lower()
 
+    if not query:
+        return jsonify([])  # Return an empty list for empty queries
+
+    # Example: Fetch matching tags from the database
+    suggestions = Tag.query.filter(Tag.name.ilike(f"%{query}%")).limit(10).all()
+    suggestion_list = [tag.name for tag in suggestions]
+
+    return jsonify(suggestion_list)
 if __name__ == "__main__":
     print("* Starting Flask server... please wait until server has fully started")
     app.run(debug=True, host='0.0.0.0')

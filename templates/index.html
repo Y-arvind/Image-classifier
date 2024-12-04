@@ -19,6 +19,24 @@
             display: none;
             margin-top: 20px;
         }
+        #suggestionBox {
+            border: 1px solid #ccc;
+            background-color: white;
+            position: absolute;
+            z-index: 1000;
+            max-height: 150px; /* Limit height */
+            overflow-y: auto; /* Scroll if content exceeds */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-item {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f7f7f7;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +68,8 @@
         <form id="feedbackForm">
             <label for="tags">Tags (comma-separated):</label><br>
             <input type="text" id="tags" required /><br><br>
+            <div id="suggestionBox"></div>
+
             <button type="submit">Submit Feedback</button>
         </form>
     </div>
@@ -163,6 +183,75 @@
                 }
             } catch (error) {
                 alert(`Error: ${error.message}`);
+            }
+        });
+        const tagInput = document.getElementById('tags');
+        const suggestionBox = document.getElementById('suggestionBox');
+
+        // Function to fetch autocomplete suggestions
+        const fetchSuggestions = async (query) => {
+            try {
+                const response = await fetch(`/tags/suggestions?query=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error("Failed to fetch suggestions");
+                const suggestions= await response.json();
+                console.log("Suggestions fetched from API:", suggestions);
+                return suggestions;
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+                return [];
+            }
+        };
+
+        // Show suggestions when typing
+        tagInput.addEventListener('input', async () => {
+            const input = tagInput.value;
+            const lastTag = input.split(',').pop().trim(); // Get the incomplete tag
+
+            if (lastTag.length < 2) {
+                suggestionBox.style.display = 'none'; // Hide suggestions if input is too short
+                return;
+            }
+
+            const suggestions = await fetchSuggestions(lastTag);
+
+            // Populate the suggestion box
+            suggestionBox.innerHTML = ''; // Clear existing suggestions
+            suggestions.forEach((suggestion) => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.textContent = suggestion;
+                suggestionItem.className = 'suggestion-item';
+
+                // Handle suggestion selection
+                suggestionItem.addEventListener('click', () => {
+                    const tagsArray = input.split(','); // Split current input into tags
+                    tagsArray[tagsArray.length - 1] = suggestion; // Replace incomplete tag
+                    tagInput.value = tagsArray.join(', '); // Update the input field
+
+                    suggestionBox.style.display = 'none'; // Hide suggestions
+                });
+
+                suggestionBox.appendChild(suggestionItem);
+            });
+
+            // Show the suggestion box below the input field
+            const rect = tagInput.getBoundingClientRect();
+            suggestionBox.style.left = `${rect.left}px`;
+            suggestionBox.style.top = `${rect.bottom + window.scrollY}px`;
+            suggestionBox.style.width = `${rect.width}px`;
+            suggestionBox.style.display = 'block';
+        });
+
+        // Hide suggestions when input loses focus
+        tagInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                suggestionBox.style.display = 'none';
+            }, 200); // Delay to allow click on suggestion
+        });
+
+        // Keep suggestion box visible when input is focused again
+        tagInput.addEventListener('focus', () => {
+            if (tagInput.value.trim().length >= 2) {
+                suggestionBox.style.display = 'block'; // Show suggestion box when focused again
             }
         });
     </script>
