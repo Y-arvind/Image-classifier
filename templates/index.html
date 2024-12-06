@@ -13,8 +13,11 @@
             margin-top: 20px;
         }
         #cropContainer {
-            display: none;
+            max-width: 300px;
+            height: 300px;
+            display: block;
             margin-top: 20px;
+        }
         #feedbackSection {
             display: none;
             margin-top: 20px;
@@ -50,27 +53,38 @@
     </form>
 
 
-    <!-- Image preview with cropping -->
-    <div id="cropContainer" style="display: none;">
-    <h3>Crop Image:</h3>
-    <img id="imagePreview" />
-    <button id="cropButton">Crop</button>
+    <!-- Image preview-->
+    <div>
+        <img id="imagePreview" style="display: none;" />
     </div>
+    <!-- Crop Container (hidden initially) -->
+    <div id="cropContainer" style="display: none;">
+        <h3>Crop the Image:</h3>
+        <img id="imagePreviewForCrop" style="display: block;" />
+    </div><br><br>
 
     <!-- Result section -->
     <h2>Classification Result:</h2>
     <pre id="result"></pre>
+
+    <!-- Annotate Button -->
+    <button id="AnnotateButton" style="display: none;">Annotate</button>
+
+
 
     <!-- Feedback section -->
     <div id="feedbackSection">
         <h3>Provide Feedback:</h3>
 
         <form id="feedbackForm">
+
             <label for="tags">Tags (comma-separated):</label><br>
-            <input type="text" id="tags" required /><br><br>
+            <input type="text" id="tags" required />
+
+            <button type="submit">Submit Feedback</button><br><br>
             <div id="suggestionBox"></div>
 
-            <button type="submit">Submit Feedback</button>
+
         </form>
     </div>
     <script src="https://unpkg.com/cropperjs"></script>
@@ -82,17 +96,8 @@
             const file = event.target.files[0];
             if (file) {
                 const objectURL = URL.createObjectURL(file);
-                const imagePreview = document.getElementById('imagePreview');
-                imagePreview.src = objectURL;
-                imagePreview.style.display = 'block';
-                document.getElementById('cropContainer').style.display = 'block';
-
-                // Initialize Cropper.js
-                if (cropper) cropper.destroy(); // Destroy previous cropper instance
-                cropper = new Cropper(imagePreview, {
-                    viewMode: 1,
-                    autoCropArea: 1,
-                });
+                document.getElementById('imagePreview').src = objectURL;
+                document.getElementById('imagePreview').style.display = 'block';
             }
         });
 
@@ -114,33 +119,69 @@
                     method: 'POST',
                     body: formData,
                 });
-
                 const result = await response.json();
+
+                //Display Results
                 if (response.ok) {
                     document.getElementById('result').textContent = JSON.stringify(result, null, 2);
-                    document.getElementById('feedbackSection').style.display = 'none';
                 } else {
-                    // Request feedback
-                    document.getElementById('feedbackSection').style.display = 'block';
                     document.getElementById('result').textContent = result.message;
-
-                    // Upload the image for feedback
-                    const uploadResponse = await fetch('/feedback/image', {
-                        method: 'POST',
-                        body: formData,
-                    });
-                    const uploadResult = await uploadResponse.json();
-                    if (uploadResponse.ok) {
-                        imageId = uploadResult.image_id; // Store image ID for tags submission
-                    } else {
-                        alert(uploadResult.error);
-                    }
                 }
+
+                // Upload the image for feedback
+                const uploadResponse = await fetch('/feedback/image', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const uploadResult = await uploadResponse.json();
+                if (uploadResponse.ok) {
+                    imageId = uploadResult.image_id; // Store image ID for tags submission
+                } else {
+                    alert(uploadResult.error);
+                }
+                document.getElementById('AnnotateButton').style.display = 'inline-block';  // Make the button visible
+
             } catch (error) {
                 document.getElementById('result').textContent = `Error: ${error.message}`;
             }
         });
-        document.getElementById('cropButton').addEventListener('click', () => {
+        document.getElementById('AnnotateButton').addEventListener('click', async () => {
+            alert("Adjust the crop area properly before submitting!");
+            // Request feedback
+            document.getElementById('feedbackSection').style.display = 'block';
+            // show cropper block
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('cropContainer').style.display = 'block';
+
+            // Initialize Cropper.js
+            const imagePreview = document.getElementById('imagePreviewCrop');
+            imagePreviewForCrop.src = document.getElementById('imagePreview').src;
+            if (cropper) cropper.destroy();
+            // Destroy previous cropper instance
+            cropper = new Cropper(document.getElementById('imagePreviewForCrop'), {
+                viewMode: 1,
+                autoCropArea: 1,
+            });
+            // Upload the image for feedback
+            const uploadResponse = await fetch('/feedback/image', {
+                        method: 'POST',
+                        body: formData,
+            });
+            const uploadResult = await uploadResponse.json();
+            if (uploadResponse.ok) {
+                imageId = uploadResult.image_id; // Store image ID for tags submission
+            } else {
+                alert(uploadResult.error);
+            }
+
+        });
+
+
+
+
+        document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
             if (cropper) {
                 const data = cropper.getData();
                 cropCoordinates = {
@@ -149,14 +190,8 @@
                     x2: data.x + data.width,
                     y2: data.y + data.height,
                 };
-                alert(`Image cropped successfully!`);
+
             }
-        });
-
-
-        document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
             const tags = document.getElementById('tags').value;
 
             if (!cropCoordinates) {

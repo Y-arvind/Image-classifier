@@ -18,7 +18,7 @@ class ImageTag(db.Model):
     __tablename__ = 'image_tag'
     image_id = db.Column(db.Integer, db.ForeignKey('images.id'), primary_key=True)
     tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), primary_key=True)
-
+    cropcoordinates = db.Column(db.String, nullable=False)
 
 
 # Image Table
@@ -43,7 +43,7 @@ class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False, unique=True)
-    cropcoordinates = db.Column(db.String, nullable=False)
+
     # Relationship with images through ImageTag
     images = db.relationship(
         'Image',
@@ -139,12 +139,12 @@ def submit_feedback_tags():
             tag = Tag.query.filter_by(name=tag_name).first()
             if not tag:
                 # Create a new Tag object if it doesn't exist
-                tag = Tag(name=tag_name, cropcoordinates=json.dumps(crops))
+                tag = Tag(name=tag_name.lower())
                 db.session.add(tag)
                 db.session.flush()  # Flush to assign an ID to the new Tag object without committing the entire transaction
 
             # Create a new ImageTag association
-            image_tag = ImageTag(image_id=image.id, tag_id=tag.id)
+            image_tag = ImageTag(image_id=image.id, tag_id=tag.id, cropcoordinates=json.dumps(crops))
             db.session.add(image_tag)
 
         db.session.commit()  # Commit after processing all tags
