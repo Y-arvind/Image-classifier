@@ -78,7 +78,7 @@ def classify_image():
 
         if confidence < 50:
             return jsonify({
-                "message": "Confidence is too low for accurate classification. Please provide feedback.",
+                "message": "Confidence is too low for accurate classification. Please provide Annotate.",
             }), 400
 
         return jsonify({res[0][0]: confidence}), 200
