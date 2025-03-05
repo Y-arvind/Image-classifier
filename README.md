@@ -1,6 +1,5 @@
 ## Resnet Classifier
-A residual network, or ResNet for short, is an artificiagit l neural network that helps to build a deeper neural network by utilizing skip connections or shortcuts to jump over some layers. 
-It is a type of CNN network. Here we use a pretrained Resnet18 model to classify images into one of 1000 labels. 
+A residual network, or ResNet for short, is an artificial neural network that helps to build a deeper neural network by utilizing skip connections or shortcuts to skip over some layers. It is a type of CNN. In this case, we use a pretrained ResNet-18 model to classify images into one of 1,000 labels. 
 
 ## How to run
 ### Locally
@@ -15,10 +14,9 @@ The API is again available on localhost:5000
 
 
 ## Sample classification
-<ins> Image sent </ins> 
 
-<img src="https://github.com/Y-arvind/ResnetClassifier/blob/master/images/dog.jpeg" width="500">
+### ✅ Correct Classification
+![Correct Sample](https://github.com/Y-arvind/Image-classifier/blob/master/correct_classified.png)
 
-<ins> Response </ins>
-
-`{'Labrador retriever': 70.66324615478516}`
+### ❌ Misclassification Example
+![Misclassified Sample](https://github.com/Y-arvind/Image-classifier/blob/master/Missclassified.png)
