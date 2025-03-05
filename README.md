@@ -15,10 +15,9 @@ The API is again available on localhost:5000
 
 
 ## Sample classification
-<ins> Image sent </ins> 
 
-<img src="https://github.com/Y-arvind/ResnetClassifier/blob/master/images/dog.jpeg" width="500">
+### ✅ Correct Classification
+![Correct Sample](https://github.com/Y-arvind/Image-classifier/blob/master/correct_classified.png)
 
-<ins> Response </ins>
-
-`{'Labrador retriever': 70.66324615478516}`
+### ❌ Misclassification Example
+![Misclassified Sample](https://github.com/Y-arvind/Image-classifier/blob/master/Missclassified.png)
