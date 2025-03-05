@@ -88,7 +88,8 @@
 
         </form>
     </div>
-    <script src="https://unpkg.com/cropperjs"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
         let cropper = null;
         let imageId = null; // Store the image ID for feedback
@@ -154,7 +155,7 @@
             document.getElementById('cropContainer').style.display = 'block';
 
             // Initialize Cropper.js
-            const imagePreview = document.getElementById('imagePreviewCrop');
+            const imagePreviewForCrop = document.getElementById('imagePreviewForCrop');
             imagePreviewForCrop.src = document.getElementById('imagePreview').src;
             if (cropper) cropper.destroy();
             // Destroy previous cropper instance
