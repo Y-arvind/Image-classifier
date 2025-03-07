@@ -126,7 +126,7 @@
             formData.append('file', imageInput.files[0]);
 
             try {
-                const response = await fetch('/qure/v1.0/classify/', {
+                const response = await fetch('/resnet/v1.0/classify/', {
                     method: 'POST',
                     body: formData,
                 });

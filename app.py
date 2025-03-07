@@ -63,7 +63,7 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/qure/v1.0/classify/', methods=['POST'])
+@app.route('/resnet/v1.0/classify/', methods=['POST'])
 def classify_image():
     if 'file' not in request.files:
         return "Please attach an image", 400
